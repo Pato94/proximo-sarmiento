@@ -1,0 +1,160 @@
+<html>
+<head>
+    <title>Express</title>
+
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <style>
+        body {
+            padding: 10px;
+        }
+        button {
+            margin: 5px;
+        }
+        .selected {
+            background-color: coral;
+        }
+        .selected:hover {
+            background-color: coral;
+        }
+        .time {
+            padding: 10px 20px;
+        }
+    </style>
+    <script type="text/javascript">
+        let origen = undefined
+
+        function selectOrigen(newOrigen) {
+            origen = newOrigen
+            update()
+        }
+
+        let destino = undefined
+
+        function selectDestino(newDestino) {
+            destino = newDestino
+            update()
+        }
+
+        function createTable(container, data) {
+            while (container.firstChild) {
+                container.removeChild(container.firstChild)
+            }
+
+            // Something like 23:31
+            const now = new Date().toTimeString().match(/\d\d:\d\d/)[0]
+
+            // Find next train
+            let j = 0;
+            while (data[origen][j] < now) j++
+            if (j < data[origen].length) {
+                const p = document.createElement("p")
+                p.innerHTML = `El próximo tren sale de ${origen} a las <b>${data[origen][j]}</b> y llega a ${destino} a las <b>${data[destino][j]}</b>`
+                container.appendChild(p)
+            } else {
+                const p = document.createElement("p")
+                p.textContent = "No se encontraron trenes para hoy"
+                container.appendChild(p)
+            }
+
+            const separator = document.createElement("h3")
+            separator.textContent = "Detalle de horarios entre estaciones seleccionadas"
+            container.appendChild(separator)
+
+            const table = document.createElement("table")
+            table.classList.add("striped")
+            const head = document.createElement("thead")
+            const headRow = document.createElement("tr")
+
+            const origenTitle = document.createElement("th")
+            origenTitle.classList.add("title")
+            origenTitle.innerHTML = `Sale de: <b>${origen}</b>`
+            headRow.appendChild(origenTitle)
+
+            const destinationTitle = document.createElement("th")
+            destinationTitle.classList.add("title")
+            destinationTitle.innerHTML = `Llega a: <b>${destino}</b>`
+            headRow.appendChild(destinationTitle)
+
+            head.appendChild(headRow)
+            table.appendChild(head)
+
+            const body = document.createElement("tbody")
+            for (let i = 0; i < data[origen].length; i++) {
+                const row = document.createElement("tr")
+                const origenCell = document.createElement("td")
+                origenCell.textContent = data[origen][i]
+                row.appendChild(origenCell)
+                const destinoCell = document.createElement("td")
+                destinoCell.textContent = data[destino][i]
+                row.appendChild(destinoCell)
+                body.appendChild(row)
+            }
+            table.appendChild(body)
+
+            container.appendChild(table)
+        }
+
+        function update() {
+            if (!origen || !destino) return
+            fetch(`/times?origin=${origen}&destination=${destino}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const container = document.getElementById("content")
+                        createTable(container, data)
+                        const next = document.getElementById("next")
+                        next.scrollIntoView()
+                    })
+        }
+
+        document.addEventListener("DOMContentLoaded", function (e) {
+            const origenes = document.getElementsByClassName("origen")
+            for (let i = 0; i < origenes.length; i++) {
+                origenes[i].addEventListener("click", function (e) {
+                    for (let j = 0; j < origenes.length; j++) {
+                        origenes[j].classList.remove("selected")
+                    }
+                    origenes[i].classList.add("selected")
+                    selectOrigen(e.target.getAttribute("data-name"))
+                })
+            }
+            const destinos = document.getElementsByClassName("destino")
+            for (let i = 0; i < destinos.length; i++) {
+                destinos[i].addEventListener("click", function (e) {
+                    for (let j = 0; j < destinos.length; j++) {
+                        destinos[j].classList.remove("selected")
+                    }
+                    destinos[i].classList.add("selected")
+                    selectDestino(e.target.getAttribute("data-name"))
+                })
+            }
+        })
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+<h1>Cuando llega?</h1>
+<h3>Estación de origen</h3>
+<div>
+    {{ #estaciones }}
+    <button class="origen btn" data-name="{{name}}">{{name}}</button>
+    {{ /estaciones }}
+</div>
+<h3>Estación de destino</h3>
+<div>
+    {{ #estaciones }}
+    <button class="destino btn" data-name="{{name}}">{{name}}</button>
+    {{ /estaciones }}
+</div>
+<h3 id="next">Próximo Tren</h3>
+<div id="content">
+    <p id="placeholder">Es necesario elegir estaciones origen y destino para ver los horarios</p>
+</div>
+</body>
+
+</html>

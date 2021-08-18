@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>Express</title>
+    <title>Próximo Sarmiento</title>
 
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
@@ -84,7 +84,11 @@
             table.appendChild(head)
 
             const body = document.createElement("tbody")
-            for (let i = 0; i < data[origen].length; i++) {
+            let i = 0;
+            if (j < data[origen].length && j > 0) {
+                i = j - 1;
+            }
+            for (; i < data[origen].length; i++) {
                 const row = document.createElement("tr")
                 const origenCell = document.createElement("td")
                 origenCell.textContent = data[origen][i]
@@ -138,7 +142,7 @@
 </head>
 
 <body>
-<h1>Cuando llega?</h1>
+<h1>Cuando llega el próximo sarmiento?</h1>
 <h3>Estación de origen</h3>
 <div>
     {{ #estaciones }}

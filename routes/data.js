@@ -77,18 +77,18 @@ function collectTimes(origin, destination, isHoliday) {
     const lines = fs.readFileSync(path, 'utf-8').split("\n")
     const startIndex = getIndexInFile(origin, direction)
     const endIndex = getIndexInFile(destination, direction)
-    const startTimes = []
-    const endTimes = []
+    const times = []
     for (let line of lines) {
         const train = line.split(" ")
         let startTime = train[startIndex]
         let endTime = train[endIndex]
         if (startTime.match(timeRegex) && endTime.match(timeRegex)) {
-            startTimes.push(startTime)
-            endTimes.push(endTime)
+            const array = [startTime, endTime]
+            times.push(array)
         }
     }
-    return { [origin]: startTimes, [destination]: endTimes }
+    times.sort((a, b) => a[0].localeCompare(b[0]))
+    return { [origin]: times.map(a => a[0]), [destination]: times.map(a => a[1]) }
 }
 
 module.exports = {
